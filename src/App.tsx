@@ -45,10 +45,11 @@ const App = () => {
 
   useEffect(() => {
     function getLocation() {
-      navigator.permissions
+      if('geolocation' in navigator){
+        navigator.permissions
         .query({ name: "geolocation" })
         .then((permissionStatus) => {
-          if (
+          if (  
             permissionStatus.state === "denied" ||
             permissionStatus.state === "prompt"
           ) {
@@ -62,6 +63,10 @@ const App = () => {
             setPermission(true);
           }
         });
+      }
+      else{
+        toast.error("Geolocation not supported by browser");
+      }
     }
 
     async function getWeather() {
