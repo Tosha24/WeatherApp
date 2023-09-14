@@ -12,9 +12,10 @@ const App = () => {
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
 
+  const [permission, setPermission] = useState(false);
+
   const [userLocation, setUserLocation] = useState("");
 
-  // Function to fetch weather data by coordinates
   const fetchWeatherByCoords = async (lat: any, lon: any) => {
     try {
       const response = await fetch(
@@ -44,10 +45,23 @@ const App = () => {
 
   useEffect(() => {
     function getLocation() {
-      navigator.geolocation.getCurrentPosition((position) => {
-        setLatitude(position.coords.latitude.toString());
-        setLongitude(position.coords.longitude.toString());
-      });
+      navigator.permissions
+        .query({ name: "geolocation" })
+        .then((permissionStatus) => {
+          if (
+            permissionStatus.state === "denied" ||
+            permissionStatus.state === "prompt"
+          ) {
+            toast.error("Please allow location access to use this app");
+            setPermission(false);
+          } else {
+            navigator.geolocation.getCurrentPosition((position) => {
+              setLatitude(position.coords.latitude.toString());
+              setLongitude(position.coords.longitude.toString());
+            });
+            setPermission(true);
+          }
+        });
     }
 
     async function getWeather() {
@@ -57,9 +71,19 @@ const App = () => {
 
         if (cachedWeatherData) {
           weatherResponse = JSON.parse(cachedWeatherData);
+          if (weatherResponse.cod === "400") {
+            weatherResponse = await fetchWeatherByCoords(latitude, longitude);
+            localStorage.setItem(
+              "cachedWeather",
+              JSON.stringify(weatherResponse)
+            );
+          }
         } else {
           weatherResponse = await fetchWeatherByCoords(latitude, longitude);
-          localStorage.setItem("cachedWeather", JSON.stringify(weatherResponse));
+          localStorage.setItem(
+            "cachedWeather",
+            JSON.stringify(weatherResponse)
+          );
         }
 
         setCurrentWeather({ city: weatherResponse.name, ...weatherResponse });
@@ -78,15 +102,24 @@ const App = () => {
       <div>
         <Toaster />
       </div>
-      <Heading currLocation={userLocation} />
-      <Search onSearchChange={handleOnSearchChange} />
-      {currentWeather && (
+      {
+        !permission && (
+          <div className='flex justify-center items-center w-full border h-screen text-lg'>
+            Enable location
+          </div>
+        )
+      }
+      {permission && <Heading currLocation={userLocation} />}
+      {permission && <Search onSearchChange={handleOnSearchChange} />}
+      {currentWeather && permission && (
         <CurrentWeather data={currentWeather} toggleButton={toggleButton} />
+      )}  
+      {currentWeather && permission && (
+        <ToggleButton
+          toggleButton={toggleButton}
+          onToggle={() => setToggleButton(!toggleButton)}
+        />
       )}
-      <ToggleButton
-        toggleButton={toggleButton}
-        onToggle={() => setToggleButton(!toggleButton)}
-      />
     </div>
   );
 };

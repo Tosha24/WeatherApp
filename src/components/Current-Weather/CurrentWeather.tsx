@@ -5,7 +5,7 @@ interface Props {
 
 const CurrentWeather = ({ data, toggleButton }: Props) => {
   return (
-    <div className="max-w-[90vw] min-w-[22vw] mt-4 rounded-3xl border-2 border-red-400 shadow-shadow text-black bg-white/60  p-5">
+    <div className="w-[90vw] mt-4 rounded-3xl border-2 border-red-400 shadow-shadow text-black bg-white/60  p-5">
       <div className="flex justify-between items-center">
         <div>
           <p className="font-semibold text-lg m-0 tracking-wide">
@@ -25,7 +25,7 @@ const CurrentWeather = ({ data, toggleButton }: Props) => {
         />
       </div>
       <div className="flex justify-between items-center">
-        <p className="font-semibold text-4xl md:text-6xl w-auto flex flex-nowrap tracking-normal my-3 mx-0">
+        <p className="font-semibold text-4xl w-full md:text-6xl flex flex-nowrap tracking-normal my-3 mx-0">
           {toggleButton
             ? `${Math.round(data?.main?.temp)}°C`
             : `${Math.round((parseFloat(data?.main?.temp) * 9) / 5 + 32.0)}°F`}
