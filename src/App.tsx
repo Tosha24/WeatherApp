@@ -5,9 +5,11 @@ import { useState, useEffect } from "react";
 import Heading from "./components/Heading/Heading";
 import ToggleButton from "./components/Toggle-Button/ToggleButton";
 import toast, { Toaster } from "react-hot-toast";
+import Forecast from "./components/Forecast/Forecast";
 
 const App = () => {
   const [currentWeather, setCurrentWeather] = useState(null);
+  const [forecast, setForecast] = useState(null);
   const [toggleButton, setToggleButton] = useState(true);
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
@@ -35,7 +37,14 @@ const App = () => {
 
     try {
       const weatherResponse = await fetchWeatherByCoords(lat, lon);
+      const forecastFetch = await fetch(
+        `${WEATHER_API_URL}/forecast?lat=${lat}&lon=${lon}&cnt=40&appid=${
+          import.meta.env.VITE_WEATHER_API_KEY
+        }&units=metric`
+      );
+      const forecastResponse = await forecastFetch.json();
       setCurrentWeather({ city: searchData.label, ...weatherResponse });
+      setForecast({ city: searchData.label, ...forecastResponse });
 
       localStorage.setItem(searchData.label, JSON.stringify(weatherResponse));
     } catch (error: any) {
@@ -45,26 +54,25 @@ const App = () => {
 
   useEffect(() => {
     function getLocation() {
-      if('geolocation' in navigator){
+      if ("geolocation" in navigator) {
         navigator.permissions
-        .query({ name: "geolocation" })
-        .then((permissionStatus) => {
-          if (  
-            permissionStatus.state === "denied" ||
-            permissionStatus.state === "prompt"
-          ) {
-            toast.error("Please allow location access to use this app");
-            setPermission(false);
-          } else {
-            navigator.geolocation.getCurrentPosition((position) => {
-              setLatitude(position.coords.latitude.toString());
-              setLongitude(position.coords.longitude.toString());
-            });
-            setPermission(true);
-          }
-        });
-      }
-      else{
+          .query({ name: "geolocation" })
+          .then((permissionStatus) => {
+            if (
+              permissionStatus.state === "denied" ||
+              permissionStatus.state === "prompt"
+            ) {
+              toast.error("Please allow location access to use this app");
+              setPermission(false);
+            } else {
+              navigator.geolocation.getCurrentPosition((position) => {
+                setLatitude(position.coords.latitude.toString());
+                setLongitude(position.coords.longitude.toString());
+              });
+              setPermission(true);
+            }
+          });
+      } else {
         toast.error("Geolocation not supported by browser");
       }
     }
@@ -125,6 +133,9 @@ const App = () => {
           onToggle={() => setToggleButton(!toggleButton)}
         />
       )}
+      {
+        forecast && <Forecast data={forecast}/>
+      }
     </div>
   );
 };
