@@ -111,7 +111,7 @@ const App = () => {
   }, [latitude, longitude]);
 
   return (
-    <div className="w-screen flex justify-start items-center min-h-screen flex-col">
+    <div className="w-full flex justify-start items-center min-h-screen overflow-x-hidden flex-col">
       <div>
         <Toaster />
       </div>
